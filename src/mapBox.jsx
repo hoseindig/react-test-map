@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -11,10 +11,9 @@ const MapComponent = () => {
     { id: 1, latitude: 35.702, longitude: 51.336 },
     // Add more initial markers here if needed
   ];
-  // /35.701, 51.417
+
   // State to hold the markers' positions
   const [markers, setMarkers] = useState(initialMarkers);
-  const [mapCenter, setMapCenter] = useState([35.702, 51.336]);
 
   // Create a custom icon using the customMarkerIcon
   const customIcon = new L.Icon({
@@ -23,41 +22,38 @@ const MapComponent = () => {
     iconAnchor: [16, 32], // Set the anchor point of your custom icon
   });
 
-  // Function to handle adding a new marker
-  const addNewMarker = (e) => {
-    console.log(e);
-    console.log(e.latlng);
+  // Ref to access the MapContainer instance
+  const mapRef = useRef();
+
+  // Function to add a new marker
+  const addNewMarker = (latitude, longitude) => {
     const newMarker = {
       id: markers.length + 1,
-      latitude: e.latlng.lat,
-      longitude: e.latlng.lng,
-    };
-
-    //// Update the markers state with the new marker
-    setMarkers([...markers, newMarker]);
-  };
-
-  const addNewMarkerFromButton = () => {
-    console.log("addNewMarkerFromButton");
-    const newMarker = {
-      id: markers.length + 1,
-      latitude: 35.701, // Set the initial latitude for the new marker
-      longitude: 51.391, // Set the initial longitude for the new marker
+      latitude,
+      longitude,
     };
 
     // Update the markers state with the new marker
     setMarkers([...markers, newMarker]);
 
     // Update the map center to the location of the new marker
-    setMapCenter([newMarker.latitude, newMarker.longitude]);
+    mapRef.current.setView([latitude, longitude], 16);
   };
+
+  // Function to add a new marker when clicking a button
+  const handleAddMarkerButtonClick = () => {
+    // Replace 35.702 and 51.336 with the desired latitude and longitude for the new marker
+    addNewMarker(35.701, 51.391);
+  };
+
   return (
     <>
       <MapContainer
-        onClick={addNewMarker}
-        center={mapCenter} // Set an initial center for the map
+        ref={mapRef} // Set the ref to access the MapContainer instance
+        center={[35.702, 51.336]} // Set the initial center of the map
         zoom={16}
         style={{ width: "100%", height: "400px" }}
+        onClick={(e) => addNewMarker(e.latlng.lat, e.latlng.lng)} // Add a new marker by clicking the map
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
@@ -72,10 +68,7 @@ const MapComponent = () => {
           </Marker>
         ))}
       </MapContainer>
-      {/* <button onClick={addNewMarker}>new marker</button> */}
-      <button onClick={addNewMarkerFromButton}>Add New Marker</button>
-      <p>{mapCenter[0]}</p>
-      <p>{mapCenter[1]}</p>
+      <button onClick={handleAddMarkerButtonClick}>Add New Marker</button>
     </>
   );
 };
